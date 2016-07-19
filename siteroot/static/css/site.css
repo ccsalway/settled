@@ -1,0 +1,87 @@
+textarea {
+    resize: none;
+}
+
+.navbar-brand .glyphicon {
+    font-size: 11px;
+}
+
+.navbar-menu {
+    margin-bottom: 0;
+    margin-right: -10px;
+}
+
+.navbar-menu > li > a {
+    color: #000;
+    padding: 15px;
+    display: inline-block;
+}
+
+.navbar-menu .dropdown-menu > li > a {
+    padding: 10px 20px;
+}
+
+.details {
+    margin-left: 300px;
+}
+
+.details h3 {
+    margin-top: 0;
+}
+
+#loginForm h3 {
+    margin-top: 0;
+}
+
+.modal-body h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.form-notice {
+    border-radius: 5px;
+}
+
+.form-notice p {
+    padding: 8px;
+}
+
+.page-notice {
+    position: fixed;
+    bottom: -50px;
+    right: 0;
+    left: 0;
+    padding: 15px;
+    font-weight: bold;
+}
+
+.message {
+    padding: 8px 0;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ccc;
+}
+.sender {
+    display:table;
+    color:#000;
+    text-decoration: none;
+    margin-bottom: 15px;
+}
+.sender:hover, .sender:focus, .sender:active{
+    text-decoration: none;
+}
+.sender > img {
+    float: left;
+    width: 50px;
+}
+.sender > div {
+    margin-left: 60px;
+}
+.sender > div > h5 {
+    margin-bottom: 0;
+}
+.sender > div > p {
+    font-size: 0.9em;
+}
+.sender.selected {
+    color: red;
+}

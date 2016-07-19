@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ site.title }}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <style>
+        .form-notice {
+            border-radius: 5px;
+        }
+        .form-notice p {
+            padding: 8px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="row">
+        <div class="center-block" style="width: 300px;">
+            <h3 class="text-center">Login</h3>
+            <hr>
+            <form id="loginForm" method="post" onsubmit="return false">
+                <div class="form-group">
+                    <input type="email" class="form-control" name="user" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" name="pswd" placeholder="Password" required>
+                </div>
+                <div class="form-notice bg-danger text-center"></div>
+                <button type="submit" class="btn btn-block btn-default">Sign in</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
+<script>
+    $('#loginForm').on('submit', function(e) {
+        e.preventDefault();
+        $.post('/user/login', $(this).serialize(), function (resp, status, obj) {
+            document.cookie = "accesstoken=" + resp + ";path=/";
+            window.location = '/';
+        }).fail(function(obj, status, error){
+            $('.form-notice').html("<p>" + obj.responseText + "</p>");
+        });
+    });
+</script>
+</body>
+</html>

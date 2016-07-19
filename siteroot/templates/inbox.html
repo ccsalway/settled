@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ site.title }}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/css/site.css">
+</head>
+
+<body>
+{% include 'navbar.html' %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12">
+            <h3 class="page-header">Inbox</h3>
+            <div class="form-notice bg-danger text-center"></div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="pull-left" style="width: 200px" id="senders">
+            </div>
+            <div style="margin-left: 200px">
+                <form id="replyForm" method="post" onsubmit="return false" class="form-inline hidden" style="margin-bottom: 15px;">
+                    <textarea rows="3" name="message" class="form-control" style="width:100%" placeholder="Type your reply and press enter..."></textarea>
+                    <small style="display: block; text-align: right">Press enter to send.</small>
+                    <input type="hidden" name="sellerid" value="">
+                </form>
+                <div id="messages">
+                    <p class="text-muted">Please select a person to view...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-notice text-center bg-primary"></div>
+
+<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+<script>
+    var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    var selected = null;
+
+    (function get_sellers(){
+        $('.form-notice').html('');
+        // get latest sellers
+        $.post('/user/inbox/sellers', function(data) {
+            var html = '';
+            if (data) {
+                var item, updated, compare, datedisplay, className;
+                var today = (new Date()).setHours(0,0,0,0);
+                for (var i = 0, ilen = data.length; i < ilen; i++) {
+                    item = data[i];
+                    updated = new Date(item['updated']);
+                    compare = new Date(item['updated']).setHours(0,0,0,0);
+                    if (compare == today) {
+                        datedisplay = ("00" + updated.getHours()).slice(-2) +':'+ ("00" + updated.getMinutes()).slice(-2);
+                    } else {
+                        datedisplay = days[updated.getDay()] + ', ' + updated.getDate() + ' ' + months[updated.getMonth()];
+                    }
+                    className = "sender";
+                    if (item['id'] == selected) {
+                        className += ' selected';
+                    }
+                    html += '<a href="javascript:void(0)" onclick="get_messages(this, '+ item['id'] +')" class="'+ className +'">'
+                         + '<img src="/static/img/profile.png">'
+                         + '<div><h5>'+ item['name'] +'</h5><p>'+ datedisplay + '</p></div>'
+                         + '</a>';
+                }
+            }
+            $('#senders').html(html);
+        }).fail(function (obj, status, error) {
+            $('.form-notice').html("<p>Error: " + obj.responseText + "</p>");
+        }).always(function(){
+            // keep trying in case the issue gets fixed
+            setTimeout(get_sellers, 5000);
+        });
+
+        // get latest messages
+        if (selected) {
+            $.post('/user/inbox/messages', {'id': selected}, function(data) {
+                var item, html = '';
+                for (var i = 0, ilen = data.length; i < ilen; i++) {
+                    item = data[i];
+                    html += '<div class="message">' +
+                            '<p>'+ item['message'] +'</p>' +
+                            '<small>' + item['name'] + ' - ' + item['created'] + '</small>' +
+                            '</div>';
+                }
+                $('#messages').html(html);
+                $('#replyForm').removeClass('hidden');
+            });
+        }
+
+    })();
+
+    function get_messages(src, id) {
+        selected = id;
+        $('[name=sellerid]', '#replyForm').val(id);
+        if (src) {
+            $('#senders').find('a').removeClass('selected');
+            $(src).addClass('selected');
+        }
+        $.post('/user/inbox/messages', {'id': id}, function(data) {
+            var item, html = '';
+            for (var i = 0, ilen = data.length; i < ilen; i++) {
+                item = data[i];
+                html += '<div class="message">' +
+                        '<p>'+ item['message'] +'</p>' +
+                        '<small>' + item['name'] + ' - ' + item['created'] + '</small>' +
+                        '</div>';
+            }
+            $('#messages').html(html);
+            $('#replyForm').removeClass('hidden');
+        });
+    }
+
+    $('[name=message]', '#replyForm').on('keypress', function(e) {
+        if (e.keyCode == 13) {  // enter
+            $.post("/user/message", $('#replyForm').serialize(), function(data) {
+                $('.page-notice').html(data).animate({bottom: 0}, 500).delay(2000).animate({bottom: -50}, 500);
+                $('[name=message]', '#replyForm').val('');
+                get_messages(null, selected);
+            }).fail(function (obj, status, error) {
+                $('.form-notice').html("<p>" + obj.responseText + "</p>");
+            });
+        }
+    })
+</script>
+</body>
+</html>

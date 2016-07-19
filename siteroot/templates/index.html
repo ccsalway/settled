@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ site.title }}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/css/site.css">
+</head>
+
+<body>
+{% include 'navbar.html' %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12">
+            <img src="{{ site.uri }}/static/img/house1.jpg" class="pull-left">
+            <div class="details">
+                <h3>&pound;425,000
+                    <small>Available</small>
+                </h3>
+                <h5>2 Bedroom Flat For Sale</h5>
+                <h6>Southampton Way, London, SE5 7EJ</h6>
+                <p>This flat makes you happy when you walk in. It's lovely and light, with a really fresh feel. And the sitting
+                    room has double aspect sash windows looking out over lush green back gardens and treetops.</p>
+                <div class="buttons">
+                    <button type="button" class="btn btn-default" id="btn-message">Message Seller</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" tabindex="-1" role="dialog" id="messageModal" data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <form id="messageForm" method="post" onsubmit="return false">
+                    <h3 class="text-center">Message Seller</h3>
+                    <div class="form-group">
+                        <textarea class="form-control" name="message" rows="3" placeholder="Please enter your message..."></textarea>
+                    </div>
+                    <div class="form-notice bg-danger text-center"></div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-block btn-primary">Send</button>
+                    </div>
+                    <input type="hidden" name="sellerid" value="1">
+                </form>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div class="page-notice text-center bg-primary"></div>
+
+<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+<script>
+    // returns accesstoken
+    function get_accesstoken() {
+        var cookie, cookies = document.cookie.split(";");
+        for (var i = 0, ilen = cookies.length; i<ilen; i++) {
+            cookie = cookies[i].split("=");
+            if (cookie[0].trim() == 'accesstoken')
+                return cookie[1].trim();
+        }
+    }
+
+    // show message modal
+    $('#btn-message').on('click', function () {
+        if (!get_accesstoken()) {
+            window.location = "/user/login";
+        } else {
+            $('#messageModal').modal('show');
+        }
+    });
+
+    // reset message form
+    $('#messageModal').on('show.bs.modal', function (e) {
+        $('[name=message]', this).val('');
+        $('.form-notice', this).html('');
+    });
+
+    // submit message form
+    $('#messageForm').on('submit', function(e) {
+        e.preventDefault();
+        $.post("/user/message", $(this).serialize(), function(data) {
+            $('#messageModal').modal('hide');
+            $('.page-notice').html(data).animate({bottom: 0}, 500).delay(2000).animate({bottom: -50}, 500);
+        }).fail(function (obj, status, error) {
+            $('.form-notice').html("<p>" + obj.responseText + "</p>");
+        });
+    });
+</script>
+</body>
+</html>
