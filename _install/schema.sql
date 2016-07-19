@@ -59,6 +59,20 @@ CREATE TABLE `users` (
   UNIQUE KEY `user` (`user`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+
+INSERT INTO `users` (`id`, `user`, `pswd`, `enabled`, `name`)
+VALUES
+	(1,'seller@settled','$2b$12$/GODpqTxkPqXEpgWGQNyTubnZ1JbmfLRNPGPYZg.C9MVClacN3x3e',1,'Jack Seller'),
+	(2,'buyer1@settled','$2b$12$/GODpqTxkPqXEpgWGQNyTubnZ1JbmfLRNPGPYZg.C9MVClacN3x3e',1,'Claire Buyer'),
+	(3,'buyer2@settled','$2b$12$/GODpqTxkPqXEpgWGQNyTubnZ1JbmfLRNPGPYZg.C9MVClacN3x3e',1,'Jill Buyer'),
+	(4,'buyer3@settled','$2b$12$/GODpqTxkPqXEpgWGQNyTubnZ1JbmfLRNPGPYZg.C9MVClacN3x3e',1,'John Buyer'),
+	(5,'buyer4@settled','$2b$12$/GODpqTxkPqXEpgWGQNyTubnZ1JbmfLRNPGPYZg.C9MVClacN3x3e',1,'Tom Buyer'),
+	(6,'buyer5@settled','$2b$12$/GODpqTxkPqXEpgWGQNyTubnZ1JbmfLRNPGPYZg.C9MVClacN3x3e',1,'Francisco Buyer');
+
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
 
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

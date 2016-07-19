@@ -28,7 +28,6 @@
                     <input type="hidden" name="sellerid" value="">
                 </form>
                 <div id="messages">
-                    <p class="text-muted">Please select a person to view...</p>
                 </div>
             </div>
         </div>
@@ -49,8 +48,14 @@
         $('.form-notice').html('');
         // get latest sellers
         $.post('/user/inbox/sellers', function(data) {
-            var html = '';
-            if (data) {
+            var senders = $('#senders');
+            var messages = $('#messages');
+            if (!data) {
+                senders.html('No Messages');
+                messages.html('');
+                $('#replyForm').addClass('hidden');
+            } else {
+                var html = '';
                 var item, updated, compare, datedisplay, className;
                 var today = (new Date()).setHours(0,0,0,0);
                 for (var i = 0, ilen = data.length; i < ilen; i++) {
@@ -71,31 +76,30 @@
                          + '<div><h5>'+ item['name'] +'</h5><p>'+ datedisplay + '</p></div>'
                          + '</a>';
                 }
+                senders.html(html);
+                if (!selected) {
+                    messages.html('<p class="text-muted">Please select a person to view...</p>')
+                }  else {
+                    $.post('/user/inbox/messages', {'id': selected}, function(data) {
+                        var item, html = '';
+                        for (var i = 0, ilen = data.length; i < ilen; i++) {
+                            item = data[i];
+                            html += '<div class="message">' +
+                                    '<p>'+ item['message'] +'</p>' +
+                                    '<small>' + item['name'] + ' - ' + item['created'] + '</small>' +
+                                    '</div>';
+                        }
+                        messages.html(html);
+                        $('#replyForm').removeClass('hidden');
+                    });
+                }
             }
-            $('#senders').html(html);
         }).fail(function (obj, status, error) {
             $('.form-notice').html("<p>Error: " + obj.responseText + "</p>");
         }).always(function(){
             // keep trying in case the issue gets fixed
             setTimeout(get_sellers, 5000);
         });
-
-        // get latest messages
-        if (selected) {
-            $.post('/user/inbox/messages', {'id': selected}, function(data) {
-                var item, html = '';
-                for (var i = 0, ilen = data.length; i < ilen; i++) {
-                    item = data[i];
-                    html += '<div class="message">' +
-                            '<p>'+ item['message'] +'</p>' +
-                            '<small>' + item['name'] + ' - ' + item['created'] + '</small>' +
-                            '</div>';
-                }
-                $('#messages').html(html);
-                $('#replyForm').removeClass('hidden');
-            });
-        }
-
     })();
 
     function get_messages(src, id) {
@@ -105,18 +109,6 @@
             $('#senders').find('a').removeClass('selected');
             $(src).addClass('selected');
         }
-        $.post('/user/inbox/messages', {'id': id}, function(data) {
-            var item, html = '';
-            for (var i = 0, ilen = data.length; i < ilen; i++) {
-                item = data[i];
-                html += '<div class="message">' +
-                        '<p>'+ item['message'] +'</p>' +
-                        '<small>' + item['name'] + ' - ' + item['created'] + '</small>' +
-                        '</div>';
-            }
-            $('#messages').html(html);
-            $('#replyForm').removeClass('hidden');
-        });
     }
 
     $('[name=message]', '#replyForm').on('keypress', function(e) {

@@ -49,7 +49,7 @@ class Message(HttpRequest):
             raise HttpException(401, "Not logged in")
         # get inputs
         try:
-            message = request.form['message'][0]
+            message = request.form['message'][0].strip()
             seller_id = request.form['sellerid'][0]
         except KeyError, e:
             raise HttpException(400, "Missing value for %s" % e.message)
