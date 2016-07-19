@@ -5,6 +5,10 @@
 # chown -R www-data:www-data /opt/settled
 #
 
+echo "mysql-server mysql-server/root_password password 2U7JcqwptQP9xAzN" | sudo debconf-set-selections
+echo "mysql-server mysql-server/root_password_again password 2U7JcqwptQP9xAzN" | sudo debconf-set-selections
+
+
 add-apt-repository ppa:nginx/stable
 
 apt-get update
@@ -25,14 +29,14 @@ pip install mysql
 pip install uwsgitop
 pip install jinja2
 
-echo <<'EOF' > /etc/environment
+cat <<'EOF' > /etc/environment
 DB_HOST="localhost"
 DB_USER="root"
-DB_PSWD="MySQLPa$$word"
+DB_PSWD="2U7JcqwptQP9xAzN"
 DB_NAME="settled"
 EOF
 
-echo <<'EOF' > /etc/nginx/nginx.conf
+cat <<'EOF' > /etc/nginx/nginx.conf
 user www-data;
 worker_processes auto;
 worker_rlimit_nofile 99999;
@@ -71,7 +75,7 @@ http {
 }
 EOF
 
-echo <<'EOF' > /etc/nginx/sites-available/default
+cat <<'EOF' > /etc/nginx/sites-available/default
 server {
         listen 80 default_server;
         listen [::]:80 default_server;
@@ -101,7 +105,7 @@ server {
 }
 EOF
 
-echo <<'EOF' > /etc/sysctl.d/99-local.conf
+cat <<'EOF' > /etc/sysctl.d/99-local.conf
 net.ipv4.ip_local_port_range = 1024 65535
 net.nf_conntrack_max = 150000
 net.core.somaxconn = 10000
@@ -113,7 +117,7 @@ EOF
 
 sysctl -p
 
-echo <<'EOF' > /etc/init/website.conf
+cat <<'EOF' > /etc/init/website.conf
 description "uWSGI Website"
 
 console log
@@ -136,8 +140,15 @@ script
 end script
 EOF
 
-mysql -uroot -p'MySQLPa$$word' < schema.sql
+cat <<'EOT' > /etc/mysql/conf.d/collation.cnf
+[mysqld]
+character-set-server=utf8
+collation-server=utf8_general_ci
+EOT
+
+restart mysql
+
+mysql -uroot -p'2U7JcqwptQP9xAzN' < schema.sql
 
 start website
 restart nginx
-restart mysql
