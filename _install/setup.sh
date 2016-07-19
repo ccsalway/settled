@@ -2,8 +2,9 @@
 
 # apt-get install git
 # git clone https://github.com/ccsalway/settled.git /opt/settled
-# chown -R www-data:www-data /opt/settled
 # sh /opt/settled/_install/setup.sh
+
+chown -R www-data:www-data /opt/settled
 
 echo "mysql-server mysql-server/root_password password 2U7JcqwptQP9xAzN" | sudo debconf-set-selections
 echo "mysql-server mysql-server/root_password_again password 2U7JcqwptQP9xAzN" | sudo debconf-set-selections
