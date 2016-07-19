@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# apt-get install git
+# git clone https://github.com/ccsalway/settled.git /opt/settled
+# chown -R www-data:www-data /opt/settled
+#
+
 add-apt-repository ppa:nginx/stable
 
 apt-get update
@@ -12,8 +17,7 @@ apt-get -y install \
     libffi-dev \
     libmysqlclient-dev \
     mysql-server \
-    mysql-client \
-    git
+    mysql-client
 
 pip install uwsgi
 pip install bcrypt
@@ -107,6 +111,8 @@ net.ipv4.tcp_tw_reuse = 1
 fs.file-max = 100000
 EOF
 
+sysctl -p
+
 echo <<'EOF' > /etc/init/website.conf
 description "uWSGI Website"
 
@@ -130,9 +136,8 @@ script
 end script
 EOF
 
-mkdir -p /opt/settled
-
-git clone
-
-
 mysql -uroot -p'MySQLPa$$word' < schema.sql
+
+start website
+restart nginx
+restart mysql
