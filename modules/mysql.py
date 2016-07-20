@@ -34,7 +34,7 @@ class MySql(object):
 
     def connect(self):
         try:
-            logging.info("Connecting to db [%s] %s@%s" % (self.ident, self.user, self.host))
+            #logging.debug("Connecting to db [%s] %s@%s" % (self.ident, self.user, self.host))
             self._conn = _mysql.connect(host=self.host, user=self.user, passwd=self.pswd, db=self.name, connect_timeout=self.timeout, conv=conversions)
             self._conn.set_character_set('utf8')
             self._conn.autocommit(False)

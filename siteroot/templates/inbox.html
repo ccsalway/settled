@@ -100,25 +100,30 @@
         var replyform = $('#replyForm');
         replyform.find('[name=recipient]').val(selected);
         $.post('/user/inbox/messages', {'senderid': selected}, function (data) {
-            var html = [];
-            var created, datedisplay;
-            // loop over messages
-            for (var i = 0, l = data.length; i < l; i++) {
-                item = data[i];
-                // format date
-                created = new Date(item['created']);
-                datedisplay = days[created.getDay()] + ', ' + created.getDate() + ' ' + months[created.getMonth()]
-                        + ' ' + ("00" + created.getHours()).slice(-2) + ':' + ("00" + created.getMinutes()).slice(-2);
-                // append to html
-                html.push('<div class="message">'
-                        + '<p>'+ item['message'] +'</p>'
-                        + '<small>' + item['name'] + ' - ' + datedisplay + '</small>'
-                        + '</div>')
+            if (!data) {
+                replyform.addClass('hidden');
+                messages.html('');
+            } else {
+                var html = [];
+                var created, datedisplay;
+                // loop over messages
+                for (var i = 0, l = data.length; i < l; i++) {
+                    item = data[i];
+                    // format date
+                    created = new Date(item['created']);
+                    datedisplay = days[created.getDay()] + ', ' + created.getDate() + ' ' + months[created.getMonth()]
+                            + ' ' + ("00" + created.getHours()).slice(-2) + ':' + ("00" + created.getMinutes()).slice(-2);
+                    // append to html
+                    html.push('<div class="message">'
+                            + '<p>' + item['message'] + '</p>'
+                            + '<small>' + item['name'] + ' - ' + datedisplay + '</small>'
+                            + '</div>')
+                }
+                // write to target
+                messages.html(html.join(''));
+                // show reply form
+                replyform.removeClass('hidden');
             }
-            // write to target
-            messages.html(html.join(''));
-            // show reply form
-            replyform.removeClass('hidden');
             // keep messages live
             timer2 = setTimeout(get_messages, 3000);
         }).fail(function (obj, status, error) {
