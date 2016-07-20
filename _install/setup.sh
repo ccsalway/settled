@@ -92,6 +92,11 @@ server {
                 try_files $uri @app;
         }
 
+        location ~ ^/(loaderio-[^/]+)/ {
+                access_log off;
+                echo $1;
+        }
+
         location @app {
                 proxy_intercept_errors on;
                 include uwsgi_params;
