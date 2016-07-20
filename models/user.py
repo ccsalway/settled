@@ -28,8 +28,3 @@ def check_login(conn, token):
     if not token: return None
     sql = "select u.* from logins l join users u on u.id = l.user_id where l.token = %s and u.enabled = 1 limit 1"
     return conn.execute(sql, [token]).fetchone()
-
-
-def send_message(conn, buyer_id, seller_id, message):
-    sql = "insert into messages (buyer_id, seller_id, message) values (%s, %s, %s)"
-    conn.execute(sql, [buyer_id, seller_id, message]).commit()

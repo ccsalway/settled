@@ -3,6 +3,7 @@ from jinja2 import Environment, FileSystemLoader
 from modules.helpers import get_first
 from modules.serialize import json_serialize
 from modules.httpcore import HttpRequest, HttpException
+from models.messaging import *
 from models.user import *
 from config import *
 
@@ -57,8 +58,7 @@ class Message(HttpRequest):
         if user['id'] == int(recipient):
             raise HttpException(400, "You can't send to yourself")
         # save a copy of the message
-        sql = "insert into messages (sender, recipient, message) values (%s, %s, %s)"
-        self.conn.execute(sql, [user['id'], recipient, message]).commit()
+        save_message(self.conn, user['id'], recipient, message)
         # return result
         return "Message sent"
 
@@ -89,24 +89,14 @@ class Inbox(HttpRequest):
         query = request.urlparams[0].lower()  # sellers or messages
         # get senders
         if query == 'sellers':
-            sql = "select u.id, u.name, MAX(m.created) 'updated' from messages m "\
-                  "join users u on u.id = if(recipient = %s, sender, recipient) "\
-                  "where %s in (sender, recipient) "\
-                  "group by u.id "\
-                  "order by updated desc"
-            data = self.conn.execute(sql, [user['id'], user['id']]).fetchall()
+            data = get_sellers(self.conn, user['id'])
         # get messages
         else:
             try:
                 senderid = request.form['senderid'][0]
             except KeyError, e:
                 raise HttpException(400, "Missing value for %s" % e.message)
-            sql = "select u.name, m.sender, m.message, m.created from messages m "\
-                  "join users u on u.id = m.sender "\
-                  "where (sender = %s and recipient = %s) "\
-                  "or (recipient = %s and sender = %s) "\
-                  "order by created desc"
-            data = self.conn.execute(sql, [user['id'], senderid, user['id'], senderid]).fetchall()
+            data = get_messages(self.conn, user['id'], senderid)
         # return result
         return 'application/json', json_serialize(data)
 

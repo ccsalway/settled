@@ -64,23 +64,39 @@ class MySql(object):
     def last_insert_id(self):
         return self._insertid
 
-    def format_statement(self, sql, vals):
-        if not vals: return sql
+    def check_value(self, v):
+        if isinstance(v, unicode):
+            v = v.encode('utf-8')
+        elif isinstance(v, datetime):
+            v = v.strftime('%Y-%m-%d %H:%M:%S')
+        return self._conn.escape(v)
+
+    def format_list(self, sql, vals):
         for v in vals:
-            if isinstance(v, unicode):
-                v = v.encode('utf-8')
-            elif isinstance(v, datetime):
-                v = v.strftime('%Y-%m-%d %H:%M:%S')
             if sql.find('%s') == -1:
                 raise Exception('Not enough placeholders in statement')
-            sql = sql.replace('%s', self._conn.escape(v), 1)
-        if sql.find('%s') > -1:
+            v = self.check_value(v)
+            sql = sql.replace('%s', v, 1)
+        if '%s' in sql:
+            raise Exception('Not all placeholders filled in statement')
+        return sql
+
+    def format_dict(self, sql, vals):
+        for k in vals:
+            if sql.find('%(' + k + ')s') == -1:
+                raise Exception('Not enough placeholders in statement')
+            v = self.check_value(vals[k])
+            sql = sql.replace('%(' + k + ')s', v)
+        if '%(' in sql and ')s' in sql:  # regexp might be better (but slower)
             raise Exception('Not all placeholders filled in statement')
         return sql
 
     def execute(self, sql, vals=None):
         self._reset()
-        sql = self.format_statement(sql, vals)
+        if isinstance(vals, list):
+            sql = self.format_list(sql, vals)
+        elif isinstance(vals, dict):
+            sql = self.format_dict(sql, vals)
         for _ in xrange(2):  # try x times
             try:
                 self._conn.query(sql)
