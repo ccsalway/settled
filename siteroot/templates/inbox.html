@@ -42,21 +42,29 @@
     var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     var selected = null;
-    var timer1, timer2;
+    var timer1 = null;
+    var alerts = $('#alerts');
+    var senders = $('#senders');
+    var messages = $('#messages');
+    var replyform = $('#replyForm');
 
     function get_senders() {
         clearTimeout(timer1);
-        var senders = $('#senders');
         $.post('/user/inbox/sellers', function (data) {
             if (!data) {
                 senders.html('No messages');
+                replyform.addClass('hidden');
+                messages.html('');
             } else {
                 var html = [];
-                var item, updated, compare, datedisplay;
+                var item, updated, compare, datedisplay, classname;
                 var today = (new Date()).setHours(0, 0, 0, 0);
                 // loop over senders
                 for (var i = 0, l = data.length; i < l; i++) {
                     item = data[i];
+                    // assign to selected if null
+                    if (!selected)
+                        selected = item['id'];
                     // get date display
                     updated = new Date(item['updated']);
                     compare = new Date(item['updated']).setHours(0, 0, 0, 0);
@@ -64,16 +72,15 @@
                         datedisplay = ("00" + updated.getHours()).slice(-2) + ':' + ("00" + updated.getMinutes()).slice(-2);
                     else
                         datedisplay = days[updated.getDay()] + ', ' + updated.getDate() + ' ' + months[updated.getMonth()];
+                    // set class if current selection
+                    classname = "sender";
+                    if (item['id'] == selected)
+                        classname += " selected";
                     // append to html
-                    html.push('<a href="javascript:void(0)" data-id="' + item['id'] + '" class="sender">'
+                    html.push('<a href="javascript:void(0)" data-id="' + item['id'] + '" class="'+ classname +'">'
                             + '<img src="/static/img/profile.png">'
                             + '<div><h5>' + item['name'] + '</h5><p>' + datedisplay + '</p></div>'
                             + '</a>');
-                    // set first sender as initial messages displayed
-                    if (!selected) {
-                        selected = item['id'];
-                        get_messages();
-                    }
                 }
                 // write to target
                 senders.html(html.join(''));
@@ -81,13 +88,17 @@
                 senders.find('a').on('click', function(e) {
                     e.preventDefault();
                     selected = $(this).attr('data-id');
+                    senders.find('a').removeClass('selected');
+                    $(this).addClass('selected');
                     get_messages();
                 });
+                // update messages
+                get_messages();
             }
             // keep senders live
             timer1 = setTimeout(get_senders, 3000);
         }).fail(function (obj, status, error) {
-            $('#alerts').append('<div class="alert alert-warning alert-dismissible" role="alert">'
+            alerts.html('<div class="alert alert-warning alert-dismissible" role="alert">'
                 +'<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'
                 +'<strong>Error!</strong> ' + obj.responseText
                 +'</div>');
@@ -95,9 +106,6 @@
     }
 
     function get_messages() {
-        clearTimeout(timer2);
-        var messages = $('#messages');
-        var replyform = $('#replyForm');
         replyform.find('[name=recipient]').val(selected);
         $.post('/user/inbox/messages', {'senderid': selected}, function (data) {
             if (!data) {
@@ -105,7 +113,7 @@
                 messages.html('');
             } else {
                 var html = [];
-                var created, datedisplay;
+                var item, created, datedisplay, classname;
                 // loop over messages
                 for (var i = 0, l = data.length; i < l; i++) {
                     item = data[i];
@@ -113,8 +121,12 @@
                     created = new Date(item['created']);
                     datedisplay = days[created.getDay()] + ', ' + created.getDate() + ' ' + months[created.getMonth()]
                             + ' ' + ("00" + created.getHours()).slice(-2) + ':' + ("00" + created.getMinutes()).slice(-2);
+                    // set class if already selected
+                    classname = "message";
+                    if (item['id'] == selected)
+                        classname += " selected";
                     // append to html
-                    html.push('<div class="message">'
+                    html.push('<div class="'+ classname +'">'
                             + '<p>' + item['message'] + '</p>'
                             + '<small>' + item['name'] + ' - ' + datedisplay + '</small>'
                             + '</div>')
@@ -124,10 +136,8 @@
                 // show reply form
                 replyform.removeClass('hidden');
             }
-            // keep messages live
-            timer2 = setTimeout(get_messages, 3000);
         }).fail(function (obj, status, error) {
-            $('#alerts').append('<div class="alert alert-warning alert-dismissible" role="alert">'
+            alerts.html('<div class="alert alert-warning alert-dismissible" role="alert">'
                 +'<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'
                 +'<strong>Error!</strong> ' + obj.responseText
                 +'</div>');
@@ -140,7 +150,7 @@
             $('.page-notice').html(data).animate({bottom: 0}, 500).delay(2000).animate({bottom: -50}, 500);
             get_messages();
         }).fail(function (obj, status, error) {
-            $('#alerts').append('<div class="alert alert-danger alert-dismissible text-center" role="alert">'
+            alerts.html('<div class="alert alert-danger alert-dismissible text-center" role="alert">'
                 +'<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'
                 +'<strong>Error!</strong> ' + obj.responseText
                 +'</div>');

@@ -80,13 +80,14 @@ class Inbox(HttpRequest):
         })
 
     def post(self, request, response):
+        """ called from ajax """
         # check access
         user = check_login(self.conn, get_first(request.cookies.get('accesstoken')))
         if not user:
             raise HttpException(401, "Not logged in")
         # get request
-        query = request.urlparams[0].lower()
-        # get all recipients
+        query = request.urlparams[0].lower()  # sellers or messages
+        # get senders
         if query == 'sellers':
             sql = "select u.id, u.name, MAX(m.created) 'updated' from messages m "\
                   "join users u on u.id = if(recipient = %s, sender, recipient) "\
@@ -94,6 +95,7 @@ class Inbox(HttpRequest):
                   "group by u.id "\
                   "order by updated desc"
             data = self.conn.execute(sql, [user['id'], user['id']]).fetchall()
+        # get messages
         else:
             try:
                 senderid = request.form['senderid'][0]
