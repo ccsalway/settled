@@ -50,16 +50,15 @@ class Message(HttpRequest):
         # get inputs
         try:
             message = request.form['message'][0].strip()
-            seller_id = request.form['sellerid'][0]
+            recipient = request.form['recipient'][0]
         except KeyError, e:
             raise HttpException(400, "Missing value for %s" % e.message)
         # check not sending to oneself
-        if user['id'] == int(seller_id):
+        if user['id'] == int(recipient):
             raise HttpException(400, "You can't send to yourself")
-        # save a copy of the message for each user
-        sql = "insert into messages (owner, editor, message) values (%s, %s, %s)"
-        #self.conn.execute(sql, [user['id'], user['id'], message]).commit()
-        self.conn.execute(sql, [seller_id, user['id'], message]).commit()
+        # save a copy of the message
+        sql = "insert into messages (sender, recipient, message) values (%s, %s, %s)"
+        self.conn.execute(sql, [user['id'], recipient, message]).commit()
         # return result
         return "Message sent"
 
@@ -87,26 +86,25 @@ class Inbox(HttpRequest):
             raise HttpException(401, "Not logged in")
         # get request
         query = request.urlparams[0].lower()
-        # get sellers
+        # get all recipients
         if query == 'sellers':
-            sql = "select distinct u.id,u.name,max(m.created) 'updated' " \
-                "from messages m " \
-                "join users u on u.id=m.editor " \
-                "where owner = %s " \
-                "group by m.editor " \
-                "order by updated desc " \
-                "limit 20"
-            data = self.conn.execute(sql, [user['id']]).fetchall()
+            sql = "select u.id, u.name, MAX(m.created) 'updated' from messages m "\
+                  "join users u on u.id = if(recipient = %s, sender, recipient) "\
+                  "where %s in (sender, recipient) "\
+                  "group by u.id "\
+                  "order by updated desc"
+            data = self.conn.execute(sql, [user['id'], user['id']]).fetchall()
         else:
             try:
-                editor = request.form['id'][0]
+                senderid = request.form['senderid'][0]
             except KeyError, e:
                 raise HttpException(400, "Missing value for %s" % e.message)
-            sql = "select u.name,m.* from messages m join users u on u.id = m.owner where m.owner = %s and m.editor = %s " \
-                "union all " \
-                "select u.name,m.* from messages m join users u on u.id = m.owner where m.editor = %s and m.owner = %s " \
-                "order by created desc"
-            data = self.conn.execute(sql, [user['id'], editor, user['id'], editor]).fetchall()
+            sql = "select u.name, m.sender, m.message, m.created from messages m "\
+                  "join users u on u.id = m.sender "\
+                  "where (sender = %s and recipient = %s) "\
+                  "or (recipient = %s and sender = %s) "\
+                  "order by created desc"
+            data = self.conn.execute(sql, [user['id'], senderid, user['id'], senderid]).fetchall()
         # return result
         return 'application/json', json_serialize(data)
 

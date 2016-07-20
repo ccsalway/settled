@@ -35,13 +35,13 @@ DROP TABLE IF EXISTS `messages`;
 
 CREATE TABLE `messages` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `owner` bigint(20) unsigned NOT NULL,
-  `editor` bigint(20) unsigned NOT NULL,
+  `sender` bigint(20) unsigned NOT NULL,
+  `recipient` bigint(20) unsigned NOT NULL,
   `message` text NOT NULL,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `sender_index` (`owner`),
-  KEY `receiver_index` (`editor`)
+  KEY `sender_index` (`sender`),
+  KEY `receiver_index` (`recipient`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 # Dump of table users
