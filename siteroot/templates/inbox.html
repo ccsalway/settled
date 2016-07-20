@@ -100,7 +100,7 @@
         }).fail(function (obj, status, error) {
             alerts.html('<div class="alert alert-warning alert-dismissible" role="alert">'
                 +'<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'
-                +'<strong>Error!</strong> ' + obj.responseText
+                +'<strong>Error!</strong> ' + obj.responseText + '. Please try refreshing the page.'
                 +'</div>');
         });
     }
@@ -139,7 +139,7 @@
         }).fail(function (obj, status, error) {
             alerts.html('<div class="alert alert-warning alert-dismissible" role="alert">'
                 +'<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'
-                +'<strong>Error!</strong> ' + obj.responseText
+                +'<strong>Error!</strong> ' + obj.responseText + '. Please try refreshing the page.'
                 +'</div>');
         });
     }
